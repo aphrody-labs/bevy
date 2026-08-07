@@ -31,6 +31,7 @@ pub struct ComponentInfo {
     pub(super) descriptor: ComponentDescriptor,
     pub(super) hooks: ComponentHooks,
     pub(super) required_components: RequiredComponents,
+    pub(super) is_disabling: bool,
     /// The set of components that require this components.
     /// Invariant: components in this set always appear after the components that they require.
     pub(super) required_by: IndexSet<ComponentId, FixedHasher>,
@@ -101,11 +102,16 @@ impl ComponentInfo {
         self.descriptor.is_send_and_sync
     }
 
+    pub fn is_disabling(&self) -> bool {
+        self.is_disabling
+    }
+
     /// Create a new [`ComponentInfo`].
     pub(crate) fn new(descriptor: ComponentDescriptor) -> Self {
         ComponentInfo {
             descriptor,
             hooks: Default::default(),
+            is_disabling: false,
             required_components: Default::default(),
             required_by: Default::default(),
         }
@@ -123,7 +129,7 @@ impl ComponentInfo {
         if self.hooks().on_discard.is_some() {
             flags.insert(ArchetypeFlags::ON_DISCARD_HOOK);
         }
-        if self.hooks().on_remove.is_some() {
+        if self.hooks().on_remove.is_some() || self.is_disabling {
             flags.insert(ArchetypeFlags::ON_REMOVE_HOOK);
         }
         if self.hooks().on_despawn.is_some() {

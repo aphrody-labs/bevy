@@ -163,6 +163,7 @@ impl<'w> ComponentsRegistrator<'w> {
             ComponentDescriptor::new::<T>,
             T::register_required_components,
             ComponentHooks::update_from_component::<T>,
+            false,
         )
     }
 
@@ -173,6 +174,7 @@ impl<'w> ComponentsRegistrator<'w> {
         descriptor: fn() -> ComponentDescriptor,
         register_required_components: fn(ComponentId, &mut RequiredComponentsRegistrator),
         update_from_component: fn(&mut ComponentHooks) -> &mut ComponentHooks,
+        is_disabling: bool,
     ) -> ComponentId {
         if let Some(&id) = self.indices.get(&type_id) {
             enforce_no_required_components_recursion(self, &self.recursion_check_stack, id);
@@ -201,6 +203,7 @@ impl<'w> ComponentsRegistrator<'w> {
                 descriptor(),
                 register_required_components,
                 update_from_component,
+                is_disabling,
             );
         }
         id
@@ -217,6 +220,7 @@ impl<'w> ComponentsRegistrator<'w> {
         descriptor: ComponentDescriptor,
         register_required_components: fn(ComponentId, &mut RequiredComponentsRegistrator),
         update_from_component: fn(&mut ComponentHooks) -> &mut ComponentHooks,
+        is_disabling: bool,
     ) {
         // SAFETY: ensured by caller.
         unsafe {
@@ -254,6 +258,7 @@ impl<'w> ComponentsRegistrator<'w> {
 
         update_from_component(&mut info.hooks);
 
+        info.is_disabling = is_disabling;
         info.required_components = required_components;
     }
 
@@ -285,6 +290,16 @@ impl<'w> ComponentsRegistrator<'w> {
             self.components.register_component_inner(id, descriptor);
         }
         id
+    }
+
+    pub fn register_disabling_component<T: Component>(&mut self) -> ComponentId {
+        self.register_component_checked(
+            TypeId::of::<T>(),
+            ComponentDescriptor::new::<T>,
+            T::register_required_components,
+            ComponentHooks::update_from_component::<T>,
+            true,
+        )
     }
 
     /// Registers a [non-send resource](crate::system::NonSend) of type `T` with this instance.
@@ -519,6 +534,7 @@ impl<'w> ComponentsQueuedRegistrator<'w> {
                                 descriptor,
                                 T::register_required_components,
                                 ComponentHooks::update_from_component::<T>,
+                                false,
                             );
                         }
                     },
