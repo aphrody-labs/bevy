@@ -472,7 +472,6 @@ impl From<BVec2> for IgnoreScroll {
     BorderColor,
     ScrollPosition,
     Visibility,
-    ZIndex,
     EmSize,
     UiTreeDirty
 )]
@@ -2859,7 +2858,8 @@ pub struct ZIndex(pub i32);
 /// Nodes with a `GlobalZIndex` of less than 0 will be drawn below nodes without a `GlobalZIndex` or nodes with a greater `GlobalZIndex`.
 /// The order of nodes with the same `GlobalZIndex` is stable between frames.
 ///
-/// If two Nodes have the same `GlobalZIndex`, ties are decided in order by:
+/// Within a UI hierarchy, nodes on the same global layer retain their local stacking order.
+/// Between separate root hierarchies, ties on the same global layer are decided by their roots in order by:
 ///
 /// * The node with the higher `ZIndex`.
 /// * The node that was newly added this frame.
