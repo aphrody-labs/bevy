@@ -5417,6 +5417,10 @@ inherits = "release"
 opt-level = "z"
 lto = "fat"
 codegen-units = 1
+panic = "abort" # rg
+strip = true # rg
+debug = false # rg
+incremental = false # rg
 
 [profile.stress-test]
 inherits = "release"
@@ -5953,8 +5957,3 @@ bevy_ui_render = { path = "crates/bevy_ui_render" }
 lto = "fat"
 codegen-units = 1
 
-[profile.wasm-release]
-panic = "abort"
-strip = true
-debug = false
-incremental = false
