@@ -138,6 +138,9 @@ unused_qualifications = "warn"
 [features]
 default = ["2d", "3d", "ui", "audio"]
 
+# Rose Griffon: trimmed set for WASM and WebGPU UI builds (no 3d, audio, gizmos, animation).
+rg_web = ["std", "web", "webgpu", "bevy_asset", "bevy_render", "bevy_core_pipeline", "bevy_ui", "bevy_text", "bevy_winit"]
+
 # PROFILE: The default 2D Bevy experience. This includes the core Bevy framework, 2D functionality, scenes and picking.
 2d = ["default_app", "default_platform", "2d_bevy_render", "scene", "picking"]
 
@@ -5943,3 +5946,15 @@ bevy_pbr = { path = "crates/bevy_pbr" }
 bevy_core_pipeline = { path = "crates/bevy_core_pipeline" }
 bevy_sprite_render = { path = "crates/bevy_sprite_render" }
 bevy_ui_render = { path = "crates/bevy_ui_render" }
+
+# --- Rose Griffon optimisations (kept on top of upstream by .github/workflows/rg-sync.yml) ---
+# Whole-program optimisation for native release; the wasm-release profile above is made smaller.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+[profile.wasm-release]
+panic = "abort"
+strip = true
+debug = false
+incremental = false
